@@ -1,0 +1,159 @@
+-- owner config:
+spinSpeed = 15 -- 15 default
+
+-- owner commands: LB!debug1 -- turn on/off
+-- 				   LB!S -- status
+-- 				   LB!NPC -- turn NPC mode on/off
+-- 				   LB!Whois (args) -- info about specified user
+-- 				   LB!Welcome -- welcome message
+
+local chatEvents = game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents")
+local messageDoneFiltering = chatEvents:WaitForChild("OnMessageDoneFiltering")
+
+lp = game.Players.LocalPlayer
+char = lp.Character
+humanoid = char.Humanoid
+hrp = char.HumanoidRootPart
+
+function chat(msg)
+	game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(msg, "All")
+end
+
+function npcmoment()
+	humanoid:MoveTo(hrp.CFrame * Vector3.new(math.random(-17.5,17.5), 0, math.random(-17.5,17.5)))
+end
+
+chat("⚡ LuaBot | Run any commands on me. | To see all the commands chat LB!Help. ⚡")
+
+npctoggled = false
+toggled = true
+
+messageDoneFiltering.OnClientEvent:Connect(function(message)
+   local player = game.Players:FindFirstChild(message.FromSpeaker)
+   local message = message.Message or ""
+
+	if message == "LB!debug1" then
+		if player.Name == game.Players.LocalPlayer.Name then
+			if toggled == true then
+				chat("⚡ LuaBot Off. ⚡")
+				toggled = false
+			elseif toggled == false then
+				chat("⚡ LuaBot On. ⚡")
+				toggled = true
+			end
+		else
+			chat("⚡ You do not have permission to run this command. ⚡")
+		end
+	end
+
+	if message == "LB!NPC" then
+		if player.Name == game.Players.LocalPlayer.Name then
+			if npctoggled == true then
+				chat("⚡ NPC Mode Off. ⚡")
+				npctoggled = false
+			elseif npctoggled == false then
+				chat("⚡ NPC Mode On. ⚡")
+				npctoggled = true
+				while npctoggled == true do
+					npcmoment()
+					wait(6.75)
+					chat("Hello!")
+				end
+			end
+		else
+			chat("⚡ You do not have permission to run this command. ⚡")
+		end
+	end
+
+	if message == "LB!S" then
+		if player.Name == game.Players.LocalPlayer.Name then
+			if toggled == true then
+				chat("⚡ LuaBot Status | Bot is Active ⚡")
+			elseif toggled == false then
+				chat("⚡ LuaBot Status | Bot is Inactive ⚡")
+			end
+		else
+			chat("⚡ You do not have permission to run this command. ⚡")
+		end
+	end
+
+	if message == "LB!Welcome" then
+		if toggled == true then
+			if player.Name == game.Players.LocalPlayer.Name then
+				chat("⚡ LuaBot | Run any commands on me. | To see all the commands chat LB!Help. ⚡")
+			else
+				chat("⚡ You do not have permission to run this command. ⚡")
+			end
+		end
+	elseif string.find(tostring(message), 'LB!Whois') then
+		if toggled == true then
+			if player.Name == game.Players.LocalPlayer.Name then
+				local String = message:gsub('LB!Whois ', '')
+				for i,v in pairs(game.Players:GetChildren()) do
+					if v.Name == String then
+						chat("Days since creation: "..v.AccountAge)
+						chat("User ID: roblox.com/users/"..v.UserId.."/profile")
+						chat("Username: "..v.Name)
+					elseif v.DisplayName == String then
+						chat("Days since creation: "..v.AccountAge)
+						chat("User ID: roblox.com/users/"..v.UserId.."/profile")
+						chat("Username: "..v.Name)
+					end
+				end
+			else
+				chat("⚡ You do not have permission to run this command. ⚡")
+			end
+		end
+	end
+
+	if toggled == true then
+		if message == "LB!Help" then
+			chat("⚡ Command List: LB!Help, LB!Forward, LB!Backwards, LB!Right, LB!Left, LB!Jump, LB!Spin, LB!UnSpin, LB!EquipTool, LB!UnEquipTool, LB!UseTool ⚡")
+		elseif message == "LB!Forward" then
+			humanoid:MoveTo(hrp.CFrame * Vector3.new(0, 0, -17.5))
+		elseif message == "LB!Backwards" then
+			humanoid:MoveTo(hrp.CFrame * Vector3.new(0, 0, 17.5))
+		elseif message == "LB!Right" then
+			humanoid:MoveTo(hrp.CFrame * Vector3.new(17.5, 0, 0))
+		elseif message == "LB!Left" then
+			humanoid:MoveTo(hrp.CFrame * Vector3.new(-17.5, 0, 0))
+		elseif message == "LB!Jump" then
+			humanoid.Jump = true
+		elseif message == "LB!Spin" then
+			local Spin = Instance.new("BodyAngularVelocity")
+			Spin.Name = "Spinning"
+			Spin.Parent = hrp
+			Spin.MaxTorque = Vector3.new(0, math.huge, 0)
+			Spin.AngularVelocity = Vector3.new(0,10,0)
+		elseif message == "LB!UnSpin" then
+			for i,v in pairs(hrp:GetChildren()) do
+				if v.Name == "Spinning" then
+					v:Destroy()
+				end
+			end
+		elseif message == "LB!EquipTool" then
+			if lp.Backpack:FindFirstChildWhichIsA("Tool") then
+				tool = lp.Backpack:FindFirstChildWhichIsA("Tool")
+				tool.Parent = char
+				chat('⚡ "'..tool.Name..'" Has been equipped ⚡')
+			else
+				chat("⚡ Couldn't find any tools to equip. ⚡")
+			end
+		elseif message == "LB!UnEquipTool" then
+			if char:FindFirstChildWhichIsA("Tool") then
+				tool = char:FindFirstChildWhichIsA("Tool")
+				tool.Parent = lp.Backpack
+				chat('⚡ "'..tool.Name..'" Has been equipped ⚡')
+			else
+				chat("⚡ Couldn't find any tools to unequip. ⚡")
+			end
+		elseif message == "LB!UseTool" then
+			if char:FindFirstChildWhichIsA("Tool") then
+				tool = char:FindFirstChildWhichIsA("Tool")
+				tool:Activate()
+			else
+				chat("⚡ Couldn't find any tools to unequip. ⚡")
+			end
+		end
+	end
+end)
